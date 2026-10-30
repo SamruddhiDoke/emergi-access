@@ -150,6 +150,7 @@ All checks below were executed against `https://emergi-access.vercel.app` on 30 
 - **Real expiry:** with a 60 s duration, the server returned `410 AUTHORIZATION_EXPIRED` after the time elapsed. Duration restored to 300 s afterwards.
 - Revocation returns `403 AUTHORIZATION_REVOKED`, and both the revocation and the refused request appear in the audit log.
 - Admin metrics come from the database. Patient access history is populated.
+- Audit records and rate limits use the real visitor IP (verified: the tester's public IP was recorded, not Render's Cloudflare edge addresses).
 - Data persisted across a backend redeploy.
 
 **Automated suites**: 48 backend tests and 14 frontend tests pass.
