@@ -4,6 +4,8 @@
 
 Emergi-Access is a privacy-preserving emergency medical information access platform, built as a full-stack prototype for the Government of Maharashtra Hackathon. Each patient gets a QR-based Emergency ID. Verified healthcare professionals use it to request short, audited, role-scoped access when a patient cannot communicate.
 
+**Live demo: https://emergi-access.vercel.app** · demo password `Demo@12345` · see [DEPLOYMENT.md](DEPLOYMENT.md) for hosting details and verification results.
+
 > **Prototype notice.** All data is synthetic. One-time codes are **simulated**: in demo mode the code is shown on screen and no SMS or email gateway is connected. Professional verification is a manual administrator action and is **not** connected to any government or medical-council registry. The system has **not** been assessed for clinical safety or regulatory compliance. Emergi-Access is an information access tool, not a diagnostic or treatment system.
 
 ---
