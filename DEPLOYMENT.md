@@ -113,7 +113,7 @@ npx vercel deploy --prod --yes --name emergi-access
 
 | Change | How to deploy |
 |---|---|
-| Backend code | `git push origin main`: Render auto-deploys (about 3–5 min) and applies new migrations during the build |
+| Backend code | `git push origin main`: Render auto-deploys (about 1–5 min) and applies new migrations during the build. Only changes under `backend/` trigger a deploy (Render's root-directory rule); root-level docs don't, which is expected. Use **Manual Deploy** to force one |
 | Database schema | Create the migration locally with `npx prisma migrate dev --name <change>` **against your local database**, commit `prisma/migrations`, push. Render runs `migrate deploy` |
 | Frontend code | `cd frontend && npx vercel deploy --prod --yes`. Optionally connect the GitHub repo in the Vercel dashboard (Project → Settings → Git, root directory `frontend`) for push-to-deploy |
 | Render env var | Render dashboard → service → Environment (saving triggers a redeploy), or edit `render.yaml` and run **Blueprint → Manual Sync** |
