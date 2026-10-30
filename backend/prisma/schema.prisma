@@ -1,0 +1,331 @@
+// Emergi-Access — relational schema
+// All medical data is synthetic in the demo environment.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  PARAMEDIC
+  DOCTOR
+  SPECIALIST
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum ConditionSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum ClinicalCategory {
+  GENERAL
+  CARDIOLOGY
+  NEUROLOGY
+  RESPIRATORY
+  ENDOCRINOLOGY
+  NEPHROLOGY
+  HAEMATOLOGY
+}
+
+enum AuthorizationStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+  DENIED
+}
+
+enum EmergencyReason {
+  PATIENT_UNCONSCIOUS
+  UNABLE_TO_COMMUNICATE
+  CRITICAL_EMERGENCY
+  UNKNOWN_MEDICAL_HISTORY
+  IMMEDIATE_TREATMENT_REQUIRED
+}
+
+enum OtpPurpose {
+  LOGIN
+  BREAK_GLASS
+}
+
+enum AuditOutcome {
+  SUCCESS
+  DENIED
+  FAILURE
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  role         Role
+  status       AccountStatus @default(ACTIVE)
+  fullName     String
+  phone        String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  patient      PatientProfile?
+  professional HealthcareProfessional?
+  sessions     Session[]
+  otps         OtpVerification[]
+
+  @@index([role])
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+
+  @@index([userId])
+}
+
+model PatientProfile {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emergencyId         String    @unique
+  emergencyIdIssuedAt DateTime  @default(now())
+  dateOfBirth         DateTime  @db.Date
+  gender              String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  medical        MedicalProfile?
+  contacts       EmergencyContact[]
+  authorizations EmergencyAuthorization[]
+}
+
+model MedicalProfile {
+  id         String   @id @default(uuid())
+  patientId  String   @unique
+  patient    PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  bloodGroup String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  allergies   Allergy[]
+  conditions  ChronicCondition[]
+  medications Medication[]
+  alerts      MedicalAlert[]
+  history     MedicalHistoryEntry[]
+}
+
+model Allergy {
+  id               String          @id @default(uuid())
+  medicalProfileId String
+  medicalProfile   MedicalProfile  @relation(fields: [medicalProfileId], references: [id], onDelete: Cascade)
+  allergen         String
+  reaction         String?
+  severity         AllergySeverity
+
+  @@index([medicalProfileId])
+}
+
+model ChronicCondition {
+  id               String            @id @default(uuid())
+  medicalProfileId String
+  medicalProfile   MedicalProfile    @relation(fields: [medicalProfileId], references: [id], onDelete: Cascade)
+  name             String
+  severity         ConditionSeverity
+  category         ClinicalCategory  @default(GENERAL)
+  diagnosedYear    Int?
+  notes            String?
+
+  @@index([medicalProfileId])
+}
+
+model Medication {
+  id               String           @id @default(uuid())
+  medicalProfileId String
+  medicalProfile   MedicalProfile   @relation(fields: [medicalProfileId], references: [id], onDelete: Cascade)
+  name             String
+  dosage           String?
+  frequency        String?
+  category         ClinicalCategory @default(GENERAL)
+  isCritical       Boolean          @default(false)
+  alertNote        String?
+
+  @@index([medicalProfileId])
+}
+
+model MedicalAlert {
+  id               String         @id @default(uuid())
+  medicalProfileId String
+  medicalProfile   MedicalProfile @relation(fields: [medicalProfileId], references: [id], onDelete: Cascade)
+  title            String
+  details          String?
+
+  @@index([medicalProfileId])
+}
+
+model MedicalHistoryEntry {
+  id               String           @id @default(uuid())
+  medicalProfileId String
+  medicalProfile   MedicalProfile   @relation(fields: [medicalProfileId], references: [id], onDelete: Cascade)
+  title            String
+  category         ClinicalCategory @default(GENERAL)
+  year             Int?
+  notes            String?
+
+  @@index([medicalProfileId])
+}
+
+model EmergencyContact {
+  id           String         @id @default(uuid())
+  patientId    String
+  patient      PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String
+  phone        String
+  isPrimary    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+
+  @@index([patientId])
+}
+
+model HealthcareProfessional {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  professionalId     String             @unique
+  organization       String
+  specialty          ClinicalCategory?
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verifiedById       String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  authorizations EmergencyAuthorization[]
+
+  @@index([verificationStatus])
+}
+
+model EmergencyAuthorization {
+  id                 String                 @id @default(uuid())
+  patientId          String
+  patient            PatientProfile         @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  patientEmergencyId String
+  professionalRefId  String
+  professional       HealthcareProfessional @relation(fields: [professionalRefId], references: [id], onDelete: Restrict)
+  professionalId     String
+  professionalRole   Role
+  organization       String
+  reason             EmergencyReason
+  justification      String
+  treatmentPurpose   String?
+  specialtyScope     ClinicalCategory?
+  otpVerified        Boolean                @default(false)
+  status             AuthorizationStatus    @default(PENDING)
+  durationSeconds    Int
+  requestedAt        DateTime               @default(now())
+  grantedAt          DateTime?
+  expiresAt          DateTime?
+  endedAt            DateTime?
+  revokedAt          DateTime?
+  revokedByUserId    String?
+  revokedByRole      Role?
+  revocationReason   String?
+  denialReason       String?
+  lastAccessedAt     DateTime?
+  accessCount        Int                    @default(0)
+  updatedAt          DateTime               @updatedAt
+
+  otps OtpVerification[]
+
+  @@index([status, expiresAt])
+  @@index([professionalRefId])
+  @@index([patientId])
+  @@index([requestedAt])
+}
+
+model OtpVerification {
+  id              String                  @id @default(uuid())
+  userId          String
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose         OtpPurpose
+  codeHash        String
+  authorizationId String?
+  authorization   EmergencyAuthorization? @relation(fields: [authorizationId], references: [id], onDelete: Cascade)
+  attempts        Int                     @default(0)
+  maxAttempts     Int                     @default(5)
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  createdAt       DateTime                @default(now())
+
+  @@index([userId, purpose])
+  @@index([authorizationId])
+}
+
+// Append-only. UPDATE and DELETE are blocked by a database trigger (see migration).
+model AuditLog {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now())
+  action             String
+  outcome            AuditOutcome
+  actorUserId        String?
+  actorRole          Role?
+  actorName          String?
+  professionalId     String?
+  organization       String?
+  patientEmergencyId String?
+  authorizationId    String?
+  reason             String?
+  justification      String?
+  categoriesAccessed String[]     @default([])
+  accessDurationSec  Int?
+  expiryStatus       String?
+  denialReason       String?
+  ipAddress          String?
+  userAgent          String?
+  metadata           Json?
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([outcome])
+  @@index([actorUserId])
+  @@index([patientEmergencyId])
+  @@index([authorizationId])
+  @@index([actorRole])
+}
+
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+}

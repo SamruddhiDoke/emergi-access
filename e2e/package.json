@@ -1,0 +1,14 @@
+{
+  "name": "emergi-access-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Browser walkthrough of the hackathon demo scenario (Playwright). Requires a freshly seeded database.",
+  "scripts": {
+    "setup": "playwright install chromium",
+    "demo": "node demo-scenario.mjs",
+    "register": "node register.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.48.2"
+  }
+}

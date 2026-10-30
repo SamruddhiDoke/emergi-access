@@ -1,0 +1,41 @@
+# Render Blueprint — Emergi-Access API (free plan).
+# Secrets marked `sync: false` are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: emergi-access-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    # Migrations run during the build (the free plan has no pre-deploy step). `migrate deploy` only
+    # applies pending migrations; it never resets or drops data.
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+    # Seeds synthetic demo data only when the database has no users; otherwise a no-op.
+    startCommand: node prisma/seed.js --if-empty && node src/server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      # Vercel rewrite + Render load balancer sit in front of the API.
+      - key: TRUST_PROXY
+        value: "2"
+      # Simulated OTP codes are shown on screen for hackathon judges. Never enable with real users.
+      - key: DEMO_MODE
+        value: "true"
+      - key: SESSION_TTL_HOURS
+        value: "8"
+      - key: AUTH_DURATION_SECONDS
+        value: "300"

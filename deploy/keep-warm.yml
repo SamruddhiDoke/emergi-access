@@ -1,0 +1,20 @@
+# TEMPLATE — to enable, copy to .github/workflows/keep-warm.yml (requires a token with the `workflow` scope).
+# Optional: pings the API so Render's free instance doesn't sleep during judging.
+# Inactive unless the repository variable KEEP_WARM_URL is set (e.g. https://<app>.vercel.app/health).
+# Disable it after the event by deleting the variable. On private repositories this consumes
+# GitHub Actions minutes (about 1 minute per run).
+name: keep-warm
+
+on:
+  schedule:
+    - cron: "*/14 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    if: ${{ vars.KEEP_WARM_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping health endpoint
+        run: curl --fail --silent --show-error --max-time 120 "${{ vars.KEEP_WARM_URL }}"

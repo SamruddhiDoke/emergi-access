@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+  --color-brand-50: #eef8f9;
+  --color-brand-100: #d3eef1;
+  --color-brand-200: #a7dce2;
+  --color-brand-300: #6fc2cc;
+  --color-brand-400: #34a3b0;
+  --color-brand-500: #0f8f9c;
+  --color-brand-600: #087f8c;
+  --color-brand-700: #086873;
+  --color-brand-800: #0b535c;
+  --color-brand-900: #0d434b;
+
+  --color-navy-950: #0b1a2b;
+  --color-navy-900: #10233a;
+  --color-navy-800: #142b45;
+  --color-navy-700: #1e3a5a;
+  --color-navy-600: #2c4c70;
+
+  --color-ink: #172b3a;
+  --color-muted: #687786;
+  --color-subtle: #95a2ae;
+  --color-canvas: #f7f9fa;
+  --color-surface: #ffffff;
+  --color-line: #e5eaee;
+  --color-line-strong: #d4dce2;
+
+  --color-series-1: #0a8f9e;
+  --color-series-2: #eb6834;
+  --color-series-3: #6250d6;
+
+  --shadow-card: 0 1px 2px rgb(20 43 69 / 0.05), 0 0 0 1px rgb(20 43 69 / 0.02);
+  --shadow-raised: 0 4px 12px -4px rgb(20 43 69 / 0.1), 0 1px 3px rgb(20 43 69 / 0.06);
+  --shadow-pop: 0 18px 40px -12px rgb(20 43 69 / 0.25), 0 3px 8px rgb(20 43 69 / 0.08);
+
+  --animate-scan: scan 2.2s ease-in-out infinite;
+  @keyframes scan {
+    0%, 100% { transform: translateY(0); opacity: 0.9; }
+    50% { transform: translateY(var(--scan-distance, 220px)); opacity: 1; }
+  }
+}
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+  body { @apply bg-canvas text-ink font-sans; font-feature-settings: "cv11", "ss01", "ss03"; }
+  ::selection { background: var(--color-brand-100); color: var(--color-navy-800); }
+  :focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; border-radius: 6px; }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; }
+}
+
+@layer components {
+  .tabular { font-variant-numeric: tabular-nums; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-700; }
+  .card { @apply bg-surface rounded-xl border border-line shadow-[var(--shadow-card)]; }
+  .hairline-grid {
+    background-image:
+      linear-gradient(to right, rgb(20 43 69 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(20 43 69 / 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+}
+
+/* html5-qrcode injects its own markup; keep it within our frame. */
+#qr-reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 0.75rem; }
+#qr-reader { border: none !important; }
+#qr-reader__dashboard, #qr-reader__status_span, #qr-reader img[alt="Info icon"] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
