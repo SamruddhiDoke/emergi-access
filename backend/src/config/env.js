@@ -21,6 +21,9 @@ export const env = {
   // Number of reverse proxies in front of the API (Vercel rewrite + Render load balancer = 2).
   // Determines which X-Forwarded-For entry is the real client IP used for rate limiting and audit.
   trustProxy: int(process.env.TRUST_PROXY, 1),
+  // Optional header carrying the visitor IP set by a trusted front proxy (Vercel sends
+  // `x-vercel-forwarded-for`). Used for audit records and rate limiting when present.
+  clientIpHeader: (process.env.CLIENT_IP_HEADER || '').toLowerCase(),
   databaseUrl: process.env.DATABASE_URL,
   redisUrl: process.env.REDIS_URL || '',
   jwtSecret: required('JWT_SECRET', 'dev-only-jwt-secret-do-not-use-in-production'),

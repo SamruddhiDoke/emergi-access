@@ -32,6 +32,10 @@ services:
       # Vercel rewrite + Render load balancer sit in front of the API.
       - key: TRUST_PROXY
         value: "2"
+      # Visitor IP as reported by the Vercel rewrite (measured: X-Vercel-Forwarded-For). Render's edge
+      # appends Cloudflare addresses to X-Forwarded-For, so it can't be used for this.
+      - key: CLIENT_IP_HEADER
+        value: x-vercel-forwarded-for
       # Simulated OTP codes are shown on screen for hackathon judges. Never enable with real users.
       - key: DEMO_MODE
         value: "true"

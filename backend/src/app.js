@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -39,6 +40,15 @@ export function createApp() {
       allowedHeaders: ['Content-Type', 'X-CSRF-Token', 'Authorization'],
     }),
   );
+  if (env.clientIpHeader) {
+    // Behind Vercel → Render's edge, X-Forwarded-For ends in proxy addresses. Prefer the visitor IP
+    // the front proxy reports, falling back to Express's own value.
+    app.use((req, _res, next) => {
+      const ip = String(req.get(env.clientIpHeader) || '').split(',')[0].trim();
+      if (isIP(ip)) Object.defineProperty(req, 'ip', { value: ip, configurable: true });
+      next();
+    });
+  }
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
   app.use('/api', limits.global);
